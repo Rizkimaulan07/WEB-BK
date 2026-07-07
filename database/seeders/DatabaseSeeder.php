@@ -18,16 +18,13 @@ class DatabaseSeeder extends Seeder {
         User::create(['name' => 'Wakasek Kesiswaan', 'email' => 'wakasek@bk.sch.id', 'password' => Hash::make('password'), 'role' => 'pimpinan', 'kelas' => 'semua']);
 
         // Kategori Kasus
-        $kategoris = [
-            ['nama' => 'Disiplin', 'warna' => '#EF4444'],
-            ['nama' => 'Akademik', 'warna' => '#3B82F6'],
-            ['nama' => 'Sosial', 'warna' => '#8B5CF6'],
-            ['nama' => 'Bullying', 'warna' => '#EC4899'],
-            ['nama' => 'Merokok', 'warna' => '#F97316'],
-            ['nama' => 'Perkelahian', 'warna' => '#DC2626'],
-            ['nama' => 'Keterlambatan', 'warna' => '#F59E0B'],
-            ['nama' => 'Lainnya', 'warna' => '#6B7280'],
-        ];
+        // Kategori Kasus
+    $kategoris = [
+        ['nama' => 'Kedisiplinan', 'warna' => '#F59E0B'],
+        ['nama' => 'Sosial',       'warna' => '#8B5CF6'],
+        ['nama' => 'Akademik',     'warna' => '#3B82F6'],
+        ['nama' => 'Lainnya',      'warna' => '#6B7280'],
+    ];
         foreach ($kategoris as $k) KategoriKasus::create($k);
 
         // Sample Siswa SMK dengan Kelas 10,11,12 dan Jurusan PPLG, AKL, TJKT, AXIO

@@ -60,17 +60,23 @@
 </div>
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // =============================================
     // Chart Kasus per Bulan
+    // =============================================
     const ctxBulan = document.getElementById('chartBulan').getContext('2d');
     const bulanData = @json($kasusPerBulan);
     
     const bulanLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    const bulanValues = [];
+    const bulanValues = Array(12).fill(0);
     
-    for (let i = 1; i <= 12; i++) {
-        bulanValues.push(bulanData[i] || 0);
-    }
+    // Isi data dari database
+    bulanData.forEach(item => {
+        bulanValues[item.bulan - 1] = item.total;
+    });
     
     new Chart(ctxBulan, {
         type: 'bar',
@@ -80,24 +86,38 @@
                 label: 'Jumlah Kasus',
                 data: bulanValues,
                 backgroundColor: '#3B82F6',
-                borderRadius: 8
+                borderRadius: 8,
+                borderSkipped: false
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
-                legend: { position: 'top' }
+                legend: { 
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
             }
         }
     });
-    
+
+    // =============================================
     // Chart Kasus per Status
+    // =============================================
     const ctxStatus = document.getElementById('chartStatus').getContext('2d');
     const statusData = @json($kasusPerStatus);
     
     const statusLabels = Object.keys(statusData);
     const statusValues = Object.values(statusData);
+    
     const statusColors = {
         'Baru': '#3B82F6',
         'Diproses': '#F59E0B',
@@ -110,23 +130,34 @@
     const backgroundColors = statusLabels.map(label => statusColors[label] || '#6B7280');
     
     new Chart(ctxStatus, {
-        type: 'pie',
+        type: 'doughnut',
         data: {
             labels: statusLabels,
             datasets: [{
                 data: statusValues,
                 backgroundColor: backgroundColors,
-                borderWidth: 0
+                borderWidth: 2,
+                borderColor: '#fff'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
-                legend: { position: 'bottom' }
-            }
+                legend: { 
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                }
+            },
+            cutout: '60%'
         }
     });
+
+});
 </script>
 @endpush
 @endsection
