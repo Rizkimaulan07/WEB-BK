@@ -9,15 +9,14 @@ class HomeVisit extends Model
     protected $fillable = [
         'kasus_id',
         'user_id',
-        'tanggal',
-        'lokasi',
-        'keterangan',
-        'hasil',
-        'foto',
+        'tanggal_kunjungan',
+        'yang_ditemui',
+        'alamat_kunjungan',
+        'hasil_kunjungan',
     ];
 
     protected $casts = [
-        'tanggal' => 'date',
+        'tanggal_kunjungan' => 'date',
     ];
 
     public function kasus()

@@ -41,7 +41,19 @@
                     </div>
                     <div>
                         <p class="text-gray-400 text-xs mb-1">Status</p>
-                        <span class="text-sm font-medium px-2 py-1 rounded-full {{ $kasus->status_badge }}">
+                        @php
+                            $statusBadges = [
+                                'Baru' => 'bg-blue-100 text-blue-700',
+                                'Diproses (Konseling)' => 'bg-yellow-100 text-yellow-700',
+                                'Pemanggilan Orang Tua' => 'bg-orange-100 text-orange-700',
+                                'SP1' => 'bg-red-100 text-red-700',
+                                'SP2' => 'bg-red-200 text-red-800',
+                                'Wakil Kesiswaan' => 'bg-purple-100 text-purple-700',
+                                'Selesai' => 'bg-green-100 text-green-700',
+                            ];
+                            $badge = $statusBadges[$kasus->status] ?? 'bg-gray-100 text-gray-700';
+                        @endphp
+                        <span class="text-sm font-medium px-2 py-1 rounded-full {{ $badge }}">
                             {{ $kasus->status ?? '-' }}
                         </span>
                     </div>
@@ -69,67 +81,86 @@
             </div>
 
             {{-- Tindak Lanjut --}}
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-                <h3 class="font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100">
-                    Riwayat Tindak Lanjut ({{ $kasus->tindakLanjuts->count() }})
-                </h3>
-                <div class="space-y-3 mb-4">
-                    @forelse($kasus->tindakLanjuts->sortByDesc('tanggal') as $tl)
-                    <div class="bg-gray-50 rounded-lg p-4 relative">
-                        <div class="flex items-start justify-between mb-1">
-                            <span class="text-xs font-semibold text-gray-500">
-                                {{ $tl->user->name ?? '-' }} · {{ $tl->tanggal ? $tl->tanggal->format('d M Y') : '-' }}
-                            </span>
-                            @if(auth()->user()->isAdmin())
-                            <form method="POST" action="{{ route('tindak-lanjut.destroy', $tl) }}"
-                                  onsubmit="return confirm('Hapus catatan ini?')">
-                                @csrf @method('DELETE')
-                                <button class="text-red-400 hover:text-red-600 text-xs">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                            @endif
-                        </div>
-                        <p class="text-sm text-gray-700">{{ $tl->catatan }}</p>
-                        <span class="mt-2 inline-block text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                            → {{ $tl->status_setelah }}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+    <h3 class="font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100">
+        <i class="fas fa-history text-gray-400 mr-2"></i>
+        Riwayat Tindak Lanjut ({{ $kasus->tindakLanjuts->count() }})
+    </h3>
+
+    <div class="space-y-3 mb-4">
+        @forelse($kasus->tindakLanjuts->sortByDesc('tanggal') as $tl)
+        <div class="bg-gray-50 rounded-lg p-4 relative">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <span class="text-xs font-semibold text-gray-500">
+                            <i class="fas fa-user mr-1"></i>{{ $tl->user->name ?? '-' }}
+                        </span>
+                        <span class="text-xs text-gray-400">
+                            <i class="fas fa-calendar-alt mr-1"></i>{{ $tl->tanggal ? $tl->tanggal->format('d M Y') : '-' }}
+                        </span>
+                        {{-- Menggunakan helper dari model --}}
+                        <span class="text-xs px-2 py-0.5 rounded-full {{ $tl->status_badge }}">
+                            <i class="fas fa-arrow-right mr-1"></i>{{ $tl->status_setelah }}
                         </span>
                     </div>
-                    @empty
-                    <p class="text-gray-400 text-sm text-center py-4">Belum ada tindak lanjut.</p>
-                    @endforelse
+                    <p class="text-sm text-gray-700 mt-1">{{ $tl->catatan }}</p>
                 </div>
-
-                @if(!auth()->user()->isPimpinan())
-                <form method="POST" action="{{ route('tindak-lanjut.store', $kasus) }}"
-                      class="border-t border-gray-100 pt-4 space-y-3">
-                    @csrf
-                    <p class="text-sm font-medium text-gray-700">Tambah Tindak Lanjut</p>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-xs text-gray-500 mb-1 block">Tanggal</label>
-                            <input type="date" name="tanggal" required value="{{ date('Y-m-d') }}"
-                                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="text-xs text-gray-500 mb-1 block">Update Status</label>
-                            <select name="status_setelah" required
-                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                @foreach(['Baru','Diproses','Konseling','Pemanggilan Orang Tua','Pembinaan','Selesai'] as $s)
-                                <option value="{{ $s }}" {{ $kasus->status === $s ? 'selected' : '' }}>{{ $s }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <textarea name="catatan" rows="3" required placeholder="Catatan tindak lanjut..."
-                              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                    <button type="submit"
-                            class="bg-blue-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-800 transition">
-                        <i class="fas fa-plus mr-1"></i> Simpan
+                @if(auth()->user()->isAdmin())
+                <form method="POST" action="{{ route('tindak-lanjut.destroy', $tl) }}"
+                      onsubmit="return confirm('Hapus catatan ini?')" class="flex-shrink-0 ml-2">
+                    @csrf @method('DELETE')
+                    <button class="text-red-400 hover:text-red-600 text-xs p-1">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </form>
                 @endif
             </div>
+        </div>
+        @empty
+        <div class="text-center py-8 text-gray-400">
+            <i class="fas fa-comment text-4xl block mb-3 text-gray-300"></i>
+            <p class="text-sm">Belum ada tindak lanjut.</p>
+        </div>
+        @endforelse
+    </div>
+
+    @if(!auth()->user()->isPimpinan())
+    <form method="POST" action="{{ route('tindak-lanjut.store', $kasus) }}"
+          class="border-t border-gray-100 pt-4 space-y-3">
+        @csrf
+        <p class="text-sm font-medium text-gray-700">
+            <i class="fas fa-plus-circle text-blue-600 mr-1"></i>
+            Tambah Tindak Lanjut
+        </p>
+
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="text-xs text-gray-500 mb-1 block">Tanggal <span class="text-red-500">*</span></label>
+                <input type="date" name="tanggal" required value="{{ old('tanggal', date('Y-m-d')) }}"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="text-xs text-gray-500 mb-1 block">Update Status <span class="text-red-500">*</span></label>
+                <select name="status_setelah" required
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @foreach(\App\Models\TindakLanjut::getStatuses() as $status)
+                    <option value="{{ $status }}" {{ old('status_setelah', $kasus->status) == $status ? 'selected' : '' }}>
+                        {{ $status }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <textarea name="catatan" rows="3" required placeholder="Catatan tindak lanjut..."
+                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('catatan') }}</textarea>
+        <button type="submit"
+                class="bg-blue-900 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-800 transition">
+            <i class="fas fa-save mr-1"></i> Simpan
+        </button>
+    </form>
+    @endif
+</div>
 
             {{-- Home Visit --}}
             @if(!auth()->user()->isPimpinan())

@@ -5,50 +5,46 @@ namespace App\Http\Controllers;
 use App\Models\Kasus;
 use App\Models\HomeVisit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class HomeVisitController extends Controller
 {
     public function store(Request $request, Kasus $kasus)
     {
-        if (!auth()->user()->isAdmin() && !auth()->user()->isBK()) {
-            abort(403);
+        // Cek permission
+        if (auth()->user()->isPimpinan()) {
+            abort(403, 'Pimpinan tidak dapat menambah home visit.');
         }
 
+        // Validasi
         $request->validate([
-            'tanggal' => 'required|date',
-            'lokasi' => 'required|string|max:255',
-            'keterangan' => 'nullable|string',
-            'hasil' => 'nullable|string',
-            'foto' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+            'tanggal_kunjungan' => 'required|date',
+            'yang_ditemui' => 'required|string|max:255',
+            'alamat_kunjungan' => 'required|string|max:255',
+            'hasil_kunjungan' => 'required|string',
         ]);
 
-        $data = $request->all();
-        $data['kasus_id'] = $kasus->id;
-        $data['user_id'] = auth()->id();
-
-        if ($request->hasFile('foto')) {
-            $path = $request->file('foto')->store('home_visit_foto', 'public');
-            $data['foto'] = $path;
-        }
-
-        HomeVisit::create($data);
+        // Simpan
+        HomeVisit::create([
+            'kasus_id' => $kasus->id,
+            'user_id' => auth()->id(),
+            'tanggal_kunjungan' => $request->tanggal_kunjungan,
+            'yang_ditemui' => $request->yang_ditemui,
+            'alamat_kunjungan' => $request->alamat_kunjungan,
+            'hasil_kunjungan' => $request->hasil_kunjungan,
+        ]);
 
         return redirect()->route('kasus.show', $kasus)
-            ->with('success', 'Home Visit berhasil dicatat!');
+            ->with('success', 'Home Visit berhasil ditambahkan!');
     }
 
     public function destroy(HomeVisit $homeVisit)
     {
+        // Cek permission
         if (!auth()->user()->isAdmin()) {
-            abort(403);
+            abort(403, 'Hanya admin yang dapat menghapus home visit.');
         }
 
-        if ($homeVisit->foto) {
-            Storage::disk('public')->delete($homeVisit->foto);
-        }
-
-        $kasusId = $homeVisit->kasus_id;
+        $kasusId = $homeVisit->kasus_id;    
         $homeVisit->delete();
 
         return redirect()->route('kasus.show', $kasusId)

@@ -10,13 +10,12 @@ return new class extends Migration
     {
         Schema::create('home_visits', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('kasus_id')->constrained('kasuses')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->date('tanggal');
-            $table->string('lokasi');
-            $table->text('keterangan')->nullable();
-            $table->text('hasil')->nullable();
-            $table->string('foto')->nullable();
+            $table->foreignId('kasus_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->date('tanggal_kunjungan');
+            $table->string('yang_ditemui');
+            $table->string('alamat_kunjungan');
+            $table->text('hasil_kunjungan');
             $table->timestamps();
         });
     }

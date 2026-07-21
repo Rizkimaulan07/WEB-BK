@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\Kasus;
 use App\Models\Siswa;
 use App\Models\KategoriKasus;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class KasusController extends Controller {
@@ -52,7 +53,15 @@ class KasusController extends Controller {
 
         $kasuses = $query->latest()->paginate(15)->withQueryString();
         $kategoris = KategoriKasus::all();
-        $statuses = ['Baru', 'Diproses', 'Konseling', 'Pemanggilan Orang Tua', 'Pembinaan', 'Selesai'];
+        $statuses = [
+            'Baru', 
+            'Diproses (Konseling)', 
+            'Pemanggilan Orang Tua', 
+            'SP1', 
+            'SP2', 
+            'Wakil Kesiswaan', 
+            'Selesai'
+        ];
 
         return view('kasus.index', compact('kasuses', 'kategoris', 'statuses'));
     }
@@ -69,7 +78,15 @@ class KasusController extends Controller {
         
         $siswas = $siswaQuery->orderBy('nama')->get();
         $kategoris = KategoriKasus::all();
-        $statuses = ['Baru', 'Diproses', 'Konseling', 'Pemanggilan Orang Tua', 'Pembinaan', 'Selesai'];
+        $statuses = [
+            'Baru', 
+            'Diproses (Konseling)', 
+            'Pemanggilan Orang Tua', 
+            'SP1', 
+            'SP2', 
+            'Wakil Kesiswaan', 
+            'Selesai'
+        ];
         return view('kasus.create', compact('siswas', 'kategoris', 'statuses'));
     }
 
@@ -81,7 +98,7 @@ class KasusController extends Controller {
             'kategori_id' => 'required|exists:kategori_kasuses,id',
             'tanggal_kejadian' => 'required|date',
             'deskripsi' => 'required|string',
-            'status' => 'required|in:Baru,Diproses,Konseling,Pemanggilan Orang Tua,Pembinaan,Selesai',
+            'status' => 'required|in:Baru,Diproses (Konseling),Pemanggilan Orang Tua,SP1,SP2,Wakil Kesiswaan,Selesai',
             'keterangan' => 'nullable|string',
         ]);
         
@@ -106,8 +123,18 @@ class KasusController extends Controller {
         
         $siswas = Siswa::where('is_active', true)->orderBy('nama')->get();
         $kategoris = KategoriKasus::all();
-        $statuses = ['Baru', 'Diproses', 'Konseling', 'Pemanggilan Orang Tua', 'Pembinaan', 'Selesai'];
-        return view('kasus.edit', compact('kasus', 'siswas', 'kategoris', 'statuses'));
+        $guruBK = User::where('role', 'guru_bk')->orderBy('name')->get();
+        $statuses = [
+            'Baru', 
+            'Diproses (Konseling)', 
+            'Pemanggilan Orang Tua', 
+            'SP1', 
+            'SP2', 
+            'Wakil Kesiswaan', 
+            'Selesai'
+        ];
+        
+        return view('kasus.edit', compact('kasus', 'siswas', 'kategoris', 'guruBK', 'statuses'));
     }
 
     public function update(Request $request, Kasus $kasus) {
@@ -122,7 +149,7 @@ class KasusController extends Controller {
             'kategori_id' => 'required|exists:kategori_kasuses,id',
             'tanggal_kejadian' => 'required|date',
             'deskripsi' => 'required|string',
-            'status' => 'required|in:Baru,Diproses,Konseling,Pemanggilan Orang Tua,Pembinaan,Selesai',
+            'status' => 'required|in:Baru,Diproses (Konseling),Pemanggilan Orang Tua,SP1,SP2,Wakil Kesiswaan,Selesai',
             'keterangan' => 'nullable|string',
         ]);
         
@@ -134,8 +161,8 @@ class KasusController extends Controller {
         abort_if(auth()->user()->isPimpinan(), 403);
         
         $request->validate([
-            'status' => 'required|in:Baru,Diproses,Konseling,Pemanggilan Orang Tua,Pembinaan,Selesai'
-        ]);
+            'status' => 'required|in:Baru,Diproses (Konseling),Pemanggilan Orang Tua,SP1,SP2,Wakil Kesiswaan,Selesai'
+        ]); 
         
         $kasus->update(['status' => $request->status]);
         return back()->with('success', 'Status kasus berhasil diubah.');
@@ -146,5 +173,19 @@ class KasusController extends Controller {
         
         $kasus->delete();
         return redirect()->route('kasus.index')->with('success', 'Kasus berhasil dihapus.');
+    }
+
+    // Helper untuk mendapatkan badge color berdasarkan status
+    public static function getStatusBadge($status) {
+        $badges = [
+            'Baru' => 'bg-blue-100 text-blue-700',
+            'Diproses (Konseling)' => 'bg-yellow-100 text-yellow-700',
+            'Pemanggilan Orang Tua' => 'bg-orange-100 text-orange-700',
+            'SP1' => 'bg-red-100 text-red-700',
+            'SP2' => 'bg-red-200 text-red-800',
+            'Wakil Kesiswaan' => 'bg-purple-100 text-purple-700',
+            'Selesai' => 'bg-green-100 text-green-700',
+        ];
+        return $badges[$status] ?? 'bg-gray-100 text-gray-700';
     }
 }

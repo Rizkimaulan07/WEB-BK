@@ -16,7 +16,8 @@ class SiswaController extends Controller
 
         if ($request->search) {
             $query->where('nama', 'like', '%' . $request->search . '%')
-                  ->orWhere('nis', 'like', '%' . $request->search . '%');
+                  ->orWhere('nis', 'like', '%' . $request->search . '%')
+                  ->orWhere('nama_panggilan', 'like', '%' . $request->search . '%');
         }
 
         if ($request->kelas) {
@@ -37,7 +38,6 @@ class SiswaController extends Controller
 
     public function create()
     {
-        // MANUAL CHECK - Hanya admin
         if (!auth()->user()->isAdmin()) {
             abort(403, 'Hanya admin yang dapat menambah data siswa.');
         }
@@ -47,32 +47,91 @@ class SiswaController extends Controller
 
     public function store(Request $request)
     {
-        // MANUAL CHECK - Hanya admin
         if (!auth()->user()->isAdmin()) {
             abort(403, 'Hanya admin yang dapat menambah data siswa.');
         }
 
         $data = $request->validate([
+            // A. Informasi Siswa
             'nis' => 'required|unique:siswas,nis',
             'nama' => 'required|string|max:255',
+            'nama_panggilan' => 'nullable|string|max:50',
             'jenis_kelamin' => 'required|in:L,P',
+            'anak_ke' => 'nullable|integer|min:1',
+            'jumlah_saudara' => 'nullable|integer|min:0',
+            'usia' => 'nullable|integer|min:1|max:100',
+            'tinggal_bersama' => 'nullable|string|max:50',
             'kelas' => 'required|string|max:20',
             'jurusan' => 'nullable|string|max:50',
             'angkatan' => 'required|string|max:10',
             'alamat' => 'nullable|string',
+            'transportasi' => 'nullable|string|max:50',
             'no_hp_siswa' => 'nullable|string|max:20',
             'no_hp_ortu' => 'nullable|string|max:20',
             'nama_ortu' => 'nullable|string|max:255',
+            
+            // B. Kondisi Kesehatan
+            'golongan_darah' => 'nullable|in:A,B,O,AB',
+            'alergi' => 'nullable|boolean',
+            'alergi_detail' => 'nullable|string|max:255',
+            'penyakit_jantung' => 'nullable|boolean',
+            'tuberculosis' => 'nullable|boolean',
+            'asma' => 'nullable|boolean',
+            'kondisi_mata' => 'nullable|string|max:50',
+            'minus_kanan' => 'nullable|string|max:10',
+            'minus_kiri' => 'nullable|string|max:10',
+            'silinder_kanan' => 'nullable|string|max:10',
+            'silinder_kiri' => 'nullable|string|max:10',
+            'buta_warna' => 'nullable|in:normal,partial,total',
+            'penyakit_lain' => 'nullable|string',
+            
+            // C. Informasi Ayah
+            'ayah_nama' => 'nullable|string|max:255',
+            'ayah_usia' => 'nullable|integer|min:1|max:120',
+            'ayah_status_perkawinan' => 'nullable|string|max:50',
+            'ayah_pendidikan' => 'nullable|string|max:50',
+            'ayah_pekerjaan' => 'nullable|string|max:100',
+            'ayah_penghasilan' => 'nullable|numeric|min:0',
+            'ayah_tanggungan' => 'nullable|integer|min:0',
+            'ayah_status_tempat_tinggal' => 'nullable|string|max:50',
+            
+            // D. Informasi Ibu
+            'ibu_nama' => 'nullable|string|max:255',
+            'ibu_usia' => 'nullable|integer|min:1|max:120',
+            'ibu_status_perkawinan' => 'nullable|string|max:50',
+            'ibu_pendidikan' => 'nullable|string|max:50',
+            'ibu_pekerjaan' => 'nullable|string|max:100',
+            'ibu_penghasilan' => 'nullable|numeric|min:0',
+            'ibu_tanggungan' => 'nullable|integer|min:0',
+            'ibu_status_tempat_tinggal' => 'nullable|string|max:50',
+            
+            // E. Informasi Wali
+            'wali_nama' => 'nullable|string|max:255',
+            'wali_usia' => 'nullable|integer|min:1|max:120',
+            'wali_status_perkawinan' => 'nullable|string|max:50',
+            'wali_pendidikan' => 'nullable|string|max:50',
+            'wali_pekerjaan' => 'nullable|string|max:100',
+            'wali_penghasilan' => 'nullable|numeric|min:0',
+            'wali_tanggungan' => 'nullable|integer|min:0',
+            'wali_status_tempat_tinggal' => 'nullable|string|max:50',
+            
+            // Foto & Status
             'is_active' => 'nullable|boolean',
             'foto' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
         ]);
 
+        // Handle checkbox boolean
+        $data['is_active'] = $request->has('is_active') ? 1 : 0;
+        $data['alergi'] = $request->has('alergi') ? 1 : 0;
+        $data['penyakit_jantung'] = $request->has('penyakit_jantung') ? 1 : 0;
+        $data['tuberculosis'] = $request->has('tuberculosis') ? 1 : 0;
+        $data['asma'] = $request->has('asma') ? 1 : 0;
+
+        // Handle foto
         if ($request->hasFile('foto')) {
             $path = $request->file('foto')->store('siswa_foto', 'public');
             $data['foto'] = $path;
         }
-
-        $data['is_active'] = $request->has('is_active') ? 1 : 0;
 
         Siswa::create($data);
 
@@ -91,7 +150,6 @@ class SiswaController extends Controller
 
     public function edit(Siswa $siswa)
     {
-        // MANUAL CHECK - Hanya admin
         if (!auth()->user()->isAdmin()) {
             abort(403, 'Hanya admin yang dapat mengedit data siswa.');
         }
@@ -101,26 +159,87 @@ class SiswaController extends Controller
 
     public function update(Request $request, Siswa $siswa)
     {
-        // MANUAL CHECK - Hanya admin
         if (!auth()->user()->isAdmin()) {
             abort(403, 'Hanya admin yang dapat mengedit data siswa.');
         }
 
         $data = $request->validate([
+            // A. Informasi Siswa
             'nis' => 'required|unique:siswas,nis,' . $siswa->id,
             'nama' => 'required|string|max:255',
+            'nama_panggilan' => 'nullable|string|max:50',
             'jenis_kelamin' => 'required|in:L,P',
+            'anak_ke' => 'nullable|integer|min:1',
+            'jumlah_saudara' => 'nullable|integer|min:0',
+            'usia' => 'nullable|integer|min:1|max:100',
+            'tinggal_bersama' => 'nullable|string|max:50',
             'kelas' => 'required|string|max:20',
             'jurusan' => 'nullable|string|max:50',
             'angkatan' => 'required|string|max:10',
             'alamat' => 'nullable|string',
+            'transportasi' => 'nullable|string|max:50',
             'no_hp_siswa' => 'nullable|string|max:20',
             'no_hp_ortu' => 'nullable|string|max:20',
             'nama_ortu' => 'nullable|string|max:255',
+            
+            // B. Kondisi Kesehatan
+            'golongan_darah' => 'nullable|in:A,B,O,AB',
+            'alergi' => 'nullable|boolean',
+            'alergi_detail' => 'nullable|string|max:255',
+            'penyakit_jantung' => 'nullable|boolean',
+            'tuberculosis' => 'nullable|boolean',
+            'asma' => 'nullable|boolean',
+            'kondisi_mata' => 'nullable|string|max:50',
+            'minus_kanan' => 'nullable|string|max:10',
+            'minus_kiri' => 'nullable|string|max:10',
+            'silinder_kanan' => 'nullable|string|max:10',
+            'silinder_kiri' => 'nullable|string|max:10',
+            'buta_warna' => 'nullable|in:normal,partial,total',
+            'penyakit_lain' => 'nullable|string',
+            
+            // C. Informasi Ayah
+            'ayah_nama' => 'nullable|string|max:255',
+            'ayah_usia' => 'nullable|integer|min:1|max:120',
+            'ayah_status_perkawinan' => 'nullable|string|max:50',
+            'ayah_pendidikan' => 'nullable|string|max:50',
+            'ayah_pekerjaan' => 'nullable|string|max:100',
+            'ayah_penghasilan' => 'nullable|numeric|min:0',
+            'ayah_tanggungan' => 'nullable|integer|min:0',
+            'ayah_status_tempat_tinggal' => 'nullable|string|max:50',
+            
+            // D. Informasi Ibu
+            'ibu_nama' => 'nullable|string|max:255',
+            'ibu_usia' => 'nullable|integer|min:1|max:120',
+            'ibu_status_perkawinan' => 'nullable|string|max:50',
+            'ibu_pendidikan' => 'nullable|string|max:50',
+            'ibu_pekerjaan' => 'nullable|string|max:100',
+            'ibu_penghasilan' => 'nullable|numeric|min:0',
+            'ibu_tanggungan' => 'nullable|integer|min:0',
+            'ibu_status_tempat_tinggal' => 'nullable|string|max:50',
+            
+            // E. Informasi Wali
+            'wali_nama' => 'nullable|string|max:255',
+            'wali_usia' => 'nullable|integer|min:1|max:120',
+            'wali_status_perkawinan' => 'nullable|string|max:50',
+            'wali_pendidikan' => 'nullable|string|max:50',
+            'wali_pekerjaan' => 'nullable|string|max:100',
+            'wali_penghasilan' => 'nullable|numeric|min:0',
+            'wali_tanggungan' => 'nullable|integer|min:0',
+            'wali_status_tempat_tinggal' => 'nullable|string|max:50',
+            
+            // Foto & Status
             'is_active' => 'nullable|boolean',
             'foto' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
         ]);
 
+        // Handle checkbox boolean
+        $data['is_active'] = $request->has('is_active') ? 1 : 0;
+        $data['alergi'] = $request->has('alergi') ? 1 : 0;
+        $data['penyakit_jantung'] = $request->has('penyakit_jantung') ? 1 : 0;
+        $data['tuberculosis'] = $request->has('tuberculosis') ? 1 : 0;
+        $data['asma'] = $request->has('asma') ? 1 : 0;
+
+        // Handle foto
         if ($request->hasFile('foto')) {
             if ($siswa->foto) {
                 Storage::disk('public')->delete($siswa->foto);
@@ -129,8 +248,6 @@ class SiswaController extends Controller
             $data['foto'] = $path;
         }
 
-        $data['is_active'] = $request->has('is_active') ? 1 : 0;
-
         $siswa->update($data);
 
         return redirect()->route('siswa.show', $siswa)->with('success', 'Data siswa berhasil diperbarui!');
@@ -138,7 +255,6 @@ class SiswaController extends Controller
 
     public function destroy(Siswa $siswa)
     {
-        // MANUAL CHECK - Hanya admin
         if (!auth()->user()->isAdmin()) {
             abort(403, 'Hanya admin yang dapat menghapus data siswa.');
         }
@@ -161,7 +277,6 @@ class SiswaController extends Controller
      */
     public function import(Request $request)
     {
-        // MANUAL CHECK - Hanya admin
         if (!auth()->user()->isAdmin()) {
             abort(403, 'Hanya admin yang dapat import data siswa.');
         }
@@ -210,38 +325,122 @@ class SiswaController extends Controller
         $columns = [
             'nis',
             'nama',
+            'nama_panggilan',
             'jenis_kelamin',
+            'anak_ke',
+            'jumlah_saudara',
+            'usia',
+            'tinggal_bersama',
             'kelas',
             'jurusan',
             'angkatan',
             'alamat',
+            'transportasi',
             'no_hp_siswa',
             'no_hp_ortu',
-            'nama_ortu'
+            'nama_ortu',
+            'golongan_darah',
+            'alergi',
+            'alergi_detail',
+            'penyakit_jantung',
+            'tuberculosis',
+            'asma',
+            'kondisi_mata',
+            'minus_kanan',
+            'minus_kiri',
+            'silinder_kanan',
+            'silinder_kiri',
+            'buta_warna',
+            'penyakit_lain',
+            'ayah_nama',
+            'ayah_usia',
+            'ayah_status_perkawinan',
+            'ayah_pendidikan',
+            'ayah_pekerjaan',
+            'ayah_penghasilan',
+            'ayah_tanggungan',
+            'ayah_status_tempat_tinggal',
+            'ibu_nama',
+            'ibu_usia',
+            'ibu_status_perkawinan',
+            'ibu_pendidikan',
+            'ibu_pekerjaan',
+            'ibu_penghasilan',
+            'ibu_tanggungan',
+            'ibu_status_tempat_tinggal',
+            'wali_nama',
+            'wali_usia',
+            'wali_status_perkawinan',
+            'wali_pendidikan',
+            'wali_pekerjaan',
+            'wali_penghasilan',
+            'wali_tanggungan',
+            'wali_status_tempat_tinggal'
         ];
 
         $callback = function() use ($columns) {
             $file = fopen('php://output', 'w');
             
-            // Tambahkan BOM untuk UTF-8 (biar Excel baca dengan benar)
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
-            // Header
             fputcsv($file, $columns);
 
-            // Contoh data (5 sample)
-            $samples = [
-                ['2024001', 'Ahmad Fauzi', 'L', '10', 'PPLG', '2024', 'Jl. Merdeka No. 1', '08123456789', '08123456780', 'Bapak Ahmad'],
-                ['2024002', 'Siti Rahma', 'P', '10', 'TJKT', '2024', 'Jl. Sudirman No. 2', '08123456788', '08123456779', 'Ibu Siti'],
-                ['2024003', 'Budi Santoso', 'L', '10', 'AKL', '2024', 'Jl. Gatot Subroto No. 3', '08123456787', '08123456778', 'Bapak Budi'],
-                ['2024004', 'Dewi Lestari', 'P', '10', 'AXIO', '2024', 'Jl. Diponegoro No. 4', '08123456786', '08123456777', 'Ibu Dewi'],
-                ['2024005', 'Eko Prasetyo', 'L', '11', 'PPLG', '2023', 'Jl. Hasanuddin No. 5', '08123456785', '08123456776', 'Bapak Eko'],
+            $sample = [
+                '2024001',
+                'Ahmad Fauzi',
+                'Ahmad',
+                'L',
+                '1',
+                '3',
+                '16',
+                'Orang Tua',
+                '10',
+                'PPLG',
+                '2024',
+                'Jl. Merdeka No. 1',
+                'Sepeda Motor',
+                '08123456789',
+                '08123456780',
+                'Bapak Ahmad',
+                'O',
+                '0',
+                '',
+                '0',
+                '0',
+                '0',
+                'Normal',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                'Bapak Ahmad',
+                '45',
+                'Menikah',
+                'S1',
+                'PNS',
+                '5000000',
+                '4',
+                'Milik Sendiri',
+                'Ibu Siti',
+                '40',
+                'Menikah',
+                'SMA',
+                'Ibu Rumah Tangga',
+                '0',
+                '0',
+                'Milik Sendiri',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                ''
             ];
 
-            foreach ($samples as $sample) {
-                fputcsv($file, $sample);
-            }
-
+            fputcsv($file, $sample);
             fclose($file);
         };
 
