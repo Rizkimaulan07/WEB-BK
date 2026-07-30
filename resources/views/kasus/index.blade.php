@@ -90,53 +90,62 @@
             <table class="w-full text-sm">
                 <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                     <tr>
-                        <th class="px-5 py-3 text-left w-10">No</th>
-                        <th class="px-5 py-3 text-left">Tanggal</th>
-                        <th class="px-5 py-3 text-left">Siswa</th>
-                        <th class="px-5 py-3 text-left">Kelas</th>
-                        <th class="px-5 py-3 text-left">Kategori</th>
-                        <th class="px-5 py-3 text-left">Status</th>
-                        <th class="px-5 py-3 text-left">Guru BK</th>
-                        <th class="px-5 py-3 text-left">Aksi</th>
+                        <th class="px-4 py-3 text-left w-10">No</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Tanggal</th>
+                        <th class="px-4 py-3 text-left">Siswa</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Kelas</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Kategori</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Status</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Guru BK</th>
+                        <th class="px-4 py-3 text-left whitespace-nowrap">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
                     @forelse($kasuses as $k)
                     <tr class="hover:bg-gray-50 transition">
-                        <td class="px-5 py-3 text-gray-400">{{ $kasuses->firstItem() + $loop->index }}</td>
-                        <td class="px-5 py-3 text-gray-600 text-xs">
+                        <td class="px-4 py-3 text-gray-400">{{ $kasuses->firstItem() + $loop->index }}</td>
+                        <td class="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">
                             {{ $k->tanggal_kejadian ? $k->tanggal_kejadian->format('d/m/Y') : '-' }}
                         </td>
-                        <td class="px-5 py-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-3">
+                                {{-- Avatar --}}
+                                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                                     @if($k->siswa && $k->siswa->foto)
-                                    <img src="{{ asset('storage/'.$k->siswa->foto) }}" class="w-7 h-7 rounded-full object-cover">
+                                    <img src="{{ asset('storage/'.$k->siswa->foto) }}" class="w-8 h-8 rounded-full object-cover">
                                     @else
                                     <span class="text-blue-700 font-bold text-xs">
                                         {{ $k->siswa ? strtoupper(substr($k->siswa->nama, 0, 2)) : '??' }}
                                     </span>
                                     @endif
                                 </div>
-                                <div>
-                                    <p class="font-medium text-gray-900">{{ $k->siswa->nama ?? '-' }}</p>
+                                {{-- Nama & NIS --}}
+                                <div class="min-w-0">
+                                    <p class="font-medium text-gray-900 truncate max-w-[150px]">
+                                        {{ $k->siswa->nama ?? '-' }}
+                                    </p>
                                     <p class="text-xs text-gray-400">{{ $k->siswa->nis ?? '' }}</p>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-5 py-3">
+                        <td class="px-4 py-3">
                             @php
-                                $kelasNum = preg_replace('/[^0-9]/', '', $k->siswa->kelas ?? '');
-                                $kelasColors = ['10'=>'bg-blue-100 text-blue-700','11'=>'bg-purple-100 text-purple-700','12'=>'bg-green-100 text-green-700'];
+                                $kelasRaw = trim($k->siswa->kelas ?? '');
+                                $kelasNum = preg_replace('/[^0-9]/', '', $kelasRaw);
+                                $kelasColors = [
+                                    '10' => 'bg-blue-100 text-blue-700',
+                                    '11' => 'bg-purple-100 text-purple-700',
+                                    '12' => 'bg-green-100 text-green-700'
+                                ];
                                 $cc = $kelasColors[$kelasNum] ?? 'bg-gray-100 text-gray-700';
                             @endphp
-                            <span class="text-xs font-medium px-2 py-1 rounded-full {{ $cc }}">
-                                Kelas {{ $kelasNum }}
+                            <span class="text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap {{ $cc }}">
+                                Kelas {{ $kelasNum ?: '-' }}
                             </span>
                         </td>
-                        <td class="px-5 py-3">
+                        <td class="px-4 py-3">
                             @if($k->kategori)
-                            <span class="text-xs font-medium px-2 py-1 rounded-full"
+                            <span class="text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap"
                                   style="background: {{ $k->kategori->warna }}20; color: {{ $k->kategori->warna }}">
                                 {{ $k->kategori->nama }}
                             </span>
@@ -144,26 +153,36 @@
                             <span class="text-xs text-gray-400">-</span>
                             @endif
                         </td>
-                        <td class="px-5 py-3">
+                        <td class="px-4 py-3">
                             @php
-                                $badge = App\Http\Controllers\KasusController::getStatusBadge($k->status);
+                                $statusClean = trim($k->status ?? '');
+                                $statusBadges = [
+                                    'Baru' => 'bg-blue-100 text-blue-700',
+                                    'Diproses (Konseling)' => 'bg-yellow-100 text-yellow-700',
+                                    'Pemanggilan Orang Tua' => 'bg-orange-100 text-orange-700',
+                                    'SP1' => 'bg-red-100 text-red-700',
+                                    'SP2' => 'bg-red-200 text-red-800',
+                                    'Wakil Kesiswaan' => 'bg-purple-100 text-purple-700',
+                                    'Selesai' => 'bg-green-100 text-green-700',
+                                ];
+                                $badge = $statusBadges[$statusClean] ?? 'bg-gray-100 text-gray-700';
                             @endphp
-                            <span class="text-xs font-medium px-2 py-1 rounded-full {{ $badge }}">
-                                {{ $k->status ?? '-' }}
+                            <span class="text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap {{ $badge }}">
+                                {{ $statusClean ?: '-' }}
                             </span>
                         </td>
-                        <td class="px-5 py-3 text-gray-600 text-sm">
+                        <td class="px-4 py-3 text-gray-600 text-sm whitespace-nowrap">
                             {{ $k->guruBK->name ?? '-' }}
                         </td>
-                        <td class="px-5 py-3">
-                            <div class="flex items-center gap-1">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-1 whitespace-nowrap">
                                 <a href="{{ route('kasus.show', $k) }}"
-                                   class="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 transition">
+                                   class="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-lg hover:bg-blue-100 transition">
                                     <i class="fas fa-eye"></i> Lihat
                                 </a>
                                 @if(!auth()->user()->isPimpinan())
                                 <a href="{{ route('kasus.edit', $k) }}"
-                                   class="inline-flex items-center gap-1 text-xs bg-yellow-50 text-yellow-700 px-2.5 py-1.5 rounded-lg hover:bg-yellow-100 transition">
+                                   class="inline-flex items-center gap-1 text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded-lg hover:bg-yellow-100 transition">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
                                 @endif
@@ -171,7 +190,7 @@
                                 <form method="POST" action="{{ route('kasus.destroy', $k) }}"
                                       onsubmit="return confirm('Hapus kasus ini?')">
                                     @csrf @method('DELETE')
-                                    <button class="inline-flex items-center gap-1 text-xs bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg hover:bg-red-100 transition">
+                                    <button class="inline-flex items-center gap-1 text-xs bg-red-50 text-red-600 px-2 py-1 rounded-lg hover:bg-red-100 transition">
                                         <i class="fas fa-trash"></i> Hapus
                                     </button>
                                 </form>
@@ -181,7 +200,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-5 py-12 text-center text-gray-400">
+                        <td colspan="8" class="px-4 py-12 text-center text-gray-400">
                             <i class="fas fa-folder-open text-4xl block mb-2"></i>
                             Belum ada data kasus.
                             @if(!auth()->user()->isPimpinan())
@@ -197,7 +216,7 @@
         </div>
 
         @if($kasuses->hasPages())
-        <div class="px-5 py-4 border-t border-gray-100 flex items-center justify-between">
+        <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
             <p class="text-xs text-gray-400">
                 Menampilkan {{ $kasuses->firstItem() }}–{{ $kasuses->lastItem() }} dari {{ $kasuses->total() }} kasus
             </p>

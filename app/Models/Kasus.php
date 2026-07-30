@@ -52,15 +52,16 @@ class Kasus extends Model
 
     /**
      * Get all available statuses
+     * Urutan: Baru → Diproses (Konseling) → SP1 → SP2 → Pemanggilan Orang Tua → Wakil Kesiswaan → Selesai
      */
     public static function getStatuses()
     {
         return [
             'Baru',
             'Diproses (Konseling)',
-            'Pemanggilan Orang Tua',
             'SP1',
             'SP2',
+            'Pemanggilan Orang Tua',
             'Wakil Kesiswaan',
             'Selesai'
         ];
@@ -74,9 +75,9 @@ class Kasus extends Model
         $badges = [
             'Baru' => 'bg-blue-100 text-blue-700',
             'Diproses (Konseling)' => 'bg-yellow-100 text-yellow-700',
-            'Pemanggilan Orang Tua' => 'bg-orange-100 text-orange-700',
             'SP1' => 'bg-red-100 text-red-700',
             'SP2' => 'bg-red-200 text-red-800',
+            'Pemanggilan Orang Tua' => 'bg-orange-100 text-orange-700',
             'Wakil Kesiswaan' => 'bg-purple-100 text-purple-700',
             'Selesai' => 'bg-green-100 text-green-700',
         ];
@@ -99,9 +100,9 @@ class Kasus extends Model
         $labels = [
             'Baru' => '🆕 Baru',
             'Diproses (Konseling)' => '📋 Diproses (Konseling)',
-            'Pemanggilan Orang Tua' => '📞 Pemanggilan Orang Tua',
             'SP1' => '📄 SP1',
             'SP2' => '📄 SP2',
+            'Pemanggilan Orang Tua' => '📞 Pemanggilan Orang Tua',
             'Wakil Kesiswaan' => '👔 Wakil Kesiswaan',
             'Selesai' => '✅ Selesai',
         ];
@@ -123,10 +124,10 @@ class Kasus extends Model
     {
         $flow = [
             'Baru' => ['Diproses (Konseling)', 'Selesai'],
-            'Diproses (Konseling)' => ['Pemanggilan Orang Tua', 'SP1', 'Selesai'],
-            'Pemanggilan Orang Tua' => ['SP1', 'Selesai'],
-            'SP1' => ['SP2', 'Wakil Kesiswaan', 'Selesai'],
-            'SP2' => ['Wakil Kesiswaan', 'Selesai'],
+            'Diproses (Konseling)' => ['SP1', 'Selesai'],
+            'SP1' => ['SP2', 'Selesai'],
+            'SP2' => ['Pemanggilan Orang Tua', 'Selesai'],
+            'Pemanggilan Orang Tua' => ['Wakil Kesiswaan', 'Selesai'],
             'Wakil Kesiswaan' => ['Selesai'],
             'Selesai' => [],
         ];

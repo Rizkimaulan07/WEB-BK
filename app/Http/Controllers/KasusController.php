@@ -56,9 +56,9 @@ class KasusController extends Controller {
         $statuses = [
             'Baru', 
             'Diproses (Konseling)', 
-            'Pemanggilan Orang Tua', 
             'SP1', 
             'SP2', 
+            'Pemanggilan Orang Tua', 
             'Wakil Kesiswaan', 
             'Selesai'
         ];
@@ -81,9 +81,9 @@ class KasusController extends Controller {
         $statuses = [
             'Baru', 
             'Diproses (Konseling)', 
-            'Pemanggilan Orang Tua', 
             'SP1', 
             'SP2', 
+            'Pemanggilan Orang Tua', 
             'Wakil Kesiswaan', 
             'Selesai'
         ];
@@ -98,7 +98,7 @@ class KasusController extends Controller {
             'kategori_id' => 'required|exists:kategori_kasuses,id',
             'tanggal_kejadian' => 'required|date',
             'deskripsi' => 'required|string',
-            'status' => 'required|in:Baru,Diproses (Konseling),Pemanggilan Orang Tua,SP1,SP2,Wakil Kesiswaan,Selesai',
+            'status' => 'required|in:Baru,Diproses (Konseling),SP1,SP2,Pemanggilan Orang Tua,Wakil Kesiswaan,Selesai',
             'keterangan' => 'nullable|string',
         ]);
         
@@ -127,9 +127,9 @@ class KasusController extends Controller {
         $statuses = [
             'Baru', 
             'Diproses (Konseling)', 
-            'Pemanggilan Orang Tua', 
             'SP1', 
             'SP2', 
+            'Pemanggilan Orang Tua', 
             'Wakil Kesiswaan', 
             'Selesai'
         ];
@@ -149,7 +149,7 @@ class KasusController extends Controller {
             'kategori_id' => 'required|exists:kategori_kasuses,id',
             'tanggal_kejadian' => 'required|date',
             'deskripsi' => 'required|string',
-            'status' => 'required|in:Baru,Diproses (Konseling),Pemanggilan Orang Tua,SP1,SP2,Wakil Kesiswaan,Selesai',
+            'status' => 'required|in:Baru,Diproses (Konseling),SP1,SP2,Pemanggilan Orang Tua,Wakil Kesiswaan,Selesai',
             'keterangan' => 'nullable|string',
         ]);
         
@@ -161,7 +161,7 @@ class KasusController extends Controller {
         abort_if(auth()->user()->isPimpinan(), 403);
         
         $request->validate([
-            'status' => 'required|in:Baru,Diproses (Konseling),Pemanggilan Orang Tua,SP1,SP2,Wakil Kesiswaan,Selesai'
+            'status' => 'required|in:Baru,Diproses (Konseling),SP1,SP2,Pemanggilan Orang Tua,Wakil Kesiswaan,Selesai'
         ]); 
         
         $kasus->update(['status' => $request->status]);
@@ -180,9 +180,9 @@ class KasusController extends Controller {
         $badges = [
             'Baru' => 'bg-blue-100 text-blue-700',
             'Diproses (Konseling)' => 'bg-yellow-100 text-yellow-700',
-            'Pemanggilan Orang Tua' => 'bg-orange-100 text-orange-700',
             'SP1' => 'bg-red-100 text-red-700',
             'SP2' => 'bg-red-200 text-red-800',
+            'Pemanggilan Orang Tua' => 'bg-orange-100 text-orange-700',
             'Wakil Kesiswaan' => 'bg-purple-100 text-purple-700',
             'Selesai' => 'bg-green-100 text-green-700',
         ];

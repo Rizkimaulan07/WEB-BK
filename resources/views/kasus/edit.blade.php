@@ -79,9 +79,9 @@
                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="Baru" {{ old('status', $kasus->status) == 'Baru' ? 'selected' : '' }}>Baru</option>
                 <option value="Diproses (Konseling)" {{ old('status', $kasus->status) == 'Diproses (Konseling)' ? 'selected' : '' }}>Diproses (Konseling)</option>
-                <option value="Pemanggilan Orang Tua" {{ old('status', $kasus->status) == 'Pemanggilan Orang Tua' ? 'selected' : '' }}>Pemanggilan Orang Tua</option>
                 <option value="SP1" {{ old('status', $kasus->status) == 'SP1' ? 'selected' : '' }}>SP1</option>
                 <option value="SP2" {{ old('status', $kasus->status) == 'SP2' ? 'selected' : '' }}>SP2</option>
+                <option value="Pemanggilan Orang Tua" {{ old('status', $kasus->status) == 'Pemanggilan Orang Tua' ? 'selected' : '' }}>Pemanggilan Orang Tua</option>
                 <option value="Wakil Kesiswaan" {{ old('status', $kasus->status) == 'Wakil Kesiswaan' ? 'selected' : '' }}>Wakil Kesiswaan</option>
                 <option value="Selesai" {{ old('status', $kasus->status) == 'Selesai' ? 'selected' : '' }}>Selesai</option>
             </select>
