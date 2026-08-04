@@ -273,7 +273,7 @@ class SiswaController extends Controller
     // ======================================================
 
     /**
-     * Import data siswa dari file Excel/CSV
+     * Import data siswa dari file Excel (.xlsx)
      */
     public function import(Request $request)
     {
@@ -292,10 +292,13 @@ class SiswaController extends Controller
             $count = $import->getImportedCount();
             $errors = $import->getErrors();
 
-            $message = "Berhasil mengimport {$count} data siswa.";
+            $message = "✅ Berhasil mengimport {$count} data siswa.";
 
             if (!empty($errors)) {
-                $message .= " Data yang gagal: " . implode(', ', $errors);
+                $message .= " ⚠️ " . implode(', ', array_slice($errors, 0, 5));
+                if (count($errors) > 5) {
+                    $message .= " dan " . (count($errors) - 5) . " data lainnya gagal.";
+                }
             }
 
             return redirect()->route('siswa.index')->with('success', $message);
@@ -306,144 +309,135 @@ class SiswaController extends Controller
             foreach ($failures as $failure) {
                 $errorMessages[] = "Baris {$failure->row()}: " . implode(', ', $failure->errors());
             }
-            return redirect()->route('siswa.index')->with('error', 'Gagal import: ' . implode('; ', $errorMessages));
+            return redirect()->route('siswa.index')->with('error', '❌ Gagal import: ' . implode('; ', array_slice($errorMessages, 0, 10)));
         } catch (\Exception $e) {
-            return redirect()->route('siswa.index')->with('error', 'Gagal import data: ' . $e->getMessage());
+            return redirect()->route('siswa.index')->with('error', '❌ Gagal import data: ' . $e->getMessage());
         }
     }
 
     /**
-     * Download template import siswa (format CSV)
+     * Download template import siswa (format Excel .xlsx)
      */
     public function downloadTemplate()
     {
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="template_import_siswa.csv"',
-        ];
+        // Buat file Excel template menggunakan PhpSpreadsheet
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template Siswa');
 
+        // Daftar kolom dengan array manual (menghindari error range)
         $columns = [
-            'nis',
-            'nama',
-            'nama_panggilan',
-            'jenis_kelamin',
-            'anak_ke',
-            'jumlah_saudara',
-            'usia',
-            'tinggal_bersama',
-            'kelas',
-            'jurusan',
-            'angkatan',
-            'alamat',
-            'transportasi',
-            'no_hp_siswa',
-            'no_hp_ortu',
-            'nama_ortu',
-            'golongan_darah',
-            'alergi',
-            'alergi_detail',
-            'penyakit_jantung',
-            'tuberculosis',
-            'asma',
-            'kondisi_mata',
-            'minus_kanan',
-            'minus_kiri',
-            'silinder_kanan',
-            'silinder_kiri',
-            'buta_warna',
-            'penyakit_lain',
-            'ayah_nama',
-            'ayah_usia',
-            'ayah_status_perkawinan',
-            'ayah_pendidikan',
-            'ayah_pekerjaan',
-            'ayah_penghasilan',
-            'ayah_tanggungan',
-            'ayah_status_tempat_tinggal',
-            'ibu_nama',
-            'ibu_usia',
-            'ibu_status_perkawinan',
-            'ibu_pendidikan',
-            'ibu_pekerjaan',
-            'ibu_penghasilan',
-            'ibu_tanggungan',
-            'ibu_status_tempat_tinggal',
-            'wali_nama',
-            'wali_usia',
-            'wali_status_perkawinan',
-            'wali_pendidikan',
-            'wali_pekerjaan',
-            'wali_penghasilan',
-            'wali_tanggungan',
-            'wali_status_tempat_tinggal'
+            'A' => 'nis*',
+            'B' => 'nama*',
+            'C' => 'nama_panggilan',
+            'D' => 'jenis_kelamin*',
+            'E' => 'anak_ke',
+            'F' => 'jumlah_saudara',
+            'G' => 'usia',
+            'H' => 'tinggal_bersama',
+            'I' => 'kelas*',
+            'J' => 'jurusan',
+            'K' => 'angkatan*',
+            'L' => 'alamat',
+            'M' => 'transportasi',
+            'N' => 'no_hp_siswa',
+            'O' => 'no_hp_ortu',
+            'P' => 'nama_ortu',
+            'Q' => 'golongan_darah',
+            'R' => 'alergi',
+            'S' => 'alergi_detail',
+            'T' => 'penyakit_jantung',
+            'U' => 'tuberculosis',
+            'V' => 'asma',
+            'W' => 'kondisi_mata',
+            'X' => 'minus_kanan',
+            'Y' => 'minus_kiri',
+            'Z' => 'silinder_kanan',
+            'AA' => 'silinder_kiri',
+            'AB' => 'buta_warna',
+            'AC' => 'penyakit_lain',
+            'AD' => 'ayah_nama',
+            'AE' => 'ayah_usia',
+            'AF' => 'ayah_status_perkawinan',
+            'AG' => 'ayah_pendidikan',
+            'AH' => 'ayah_pekerjaan',
+            'AI' => 'ayah_penghasilan',
+            'AJ' => 'ayah_tanggungan',
+            'AK' => 'ayah_status_tempat_tinggal',
+            'AL' => 'ibu_nama',
+            'AM' => 'ibu_usia',
+            'AN' => 'ibu_status_perkawinan',
+            'AO' => 'ibu_pendidikan',
+            'AP' => 'ibu_pekerjaan',
+            'AQ' => 'ibu_penghasilan',
+            'AR' => 'ibu_tanggungan',
+            'AS' => 'ibu_status_tempat_tinggal',
+            'AT' => 'wali_nama',
+            'AU' => 'wali_usia',
+            'AV' => 'wali_status_perkawinan',
+            'AW' => 'wali_pendidikan',
+            'AX' => 'wali_pekerjaan',
+            'AY' => 'wali_penghasilan',
+            'AZ' => 'wali_tanggungan',
+            'BA' => 'wali_status_tempat_tinggal',
         ];
 
-        $callback = function() use ($columns) {
-            $file = fopen('php://output', 'w');
-            
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($file, $columns);
+        // Set header
+        $row = 1;
+        foreach ($columns as $col => $header) {
+            $sheet->setCellValue($col . $row, $header);
+            $sheet->getStyle($col . $row)->getFont()->setBold(true);
+            $sheet->getStyle($col . $row)->getFont()->getColor()->setARGB('FFFFFFFF');
+            $sheet->getStyle($col . $row)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('FF4472C4');
+            $sheet->getStyle($col . $row)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        }
 
-            $sample = [
-                '2024001',
-                'Ahmad Fauzi',
-                'Ahmad',
-                'L',
-                '1',
-                '3',
-                '16',
-                'Orang Tua',
-                '10',
-                'PPLG',
-                '2024',
-                'Jl. Merdeka No. 1',
-                'Sepeda Motor',
-                '08123456789',
-                '08123456780',
-                'Bapak Ahmad',
-                'O',
-                '0',
-                '',
-                '0',
-                '0',
-                '0',
-                'Normal',
-                '',
-                '',
-                '',
-                '',
-                '',
-                '',
-                'Bapak Ahmad',
-                '45',
-                'Menikah',
-                'S1',
-                'PNS',
-                '5000000',
-                '4',
-                'Milik Sendiri',
-                'Ibu Siti',
-                '40',
-                'Menikah',
-                'SMA',
-                'Ibu Rumah Tangga',
-                '0',
-                '0',
-                'Milik Sendiri',
-                '',
-                '',
-                '',
-                '',
-                '',
-                '',
-                '',
-                ''
-            ];
+        // Set lebar kolom
+        foreach ($columns as $col => $header) {
+            $sheet->getColumnDimension($col)->setWidth(15);
+        }
 
-            fputcsv($file, $sample);
-            fclose($file);
-        };
+        // Keterangan
+        $sheet->setCellValue('A3', 'Keterangan: Kolom dengan tanda * wajib diisi');
+        $sheet->getStyle('A3')->getFont()->setItalic(true)->getColor()->setARGB('FFFF0000');
 
-        return response()->stream($callback, 200, $headers);
+        // Sample data
+        $sample = [
+            '2024001', 'Ahmad Fauzi', 'Ahmad', 'L', '1', '3', '16', 'Orang Tua',
+            '10', 'PPLG', '2024', 'Jl. Merdeka No. 1', 'Sepeda Motor',
+            '08123456789', '08123456780', 'Bapak Ahmad',
+            'O', '0', '', '0', '0', '0', 'Normal', '', '', '', '', '', '',
+            'Bapak Ahmad', '45', 'Menikah', 'S1', 'PNS', '5000000', '4', 'Milik Sendiri',
+            'Ibu Siti', '40', 'Menikah', 'SMA', 'Ibu Rumah Tangga', '0', '0', 'Milik Sendiri',
+            '', '', '', '', '', '', '', ''
+        ];
+
+        $row = 2;
+        $colIndex = 0;
+        $colKeys = array_keys($columns);
+        foreach ($colKeys as $col) {
+            $sheet->setCellValue($col . $row, $sample[$colIndex] ?? '');
+            $colIndex++;
+        }
+
+        // Border
+        $lastCol = end($colKeys);
+        $styleArray = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['argb' => 'FFCCCCCC'],
+                ],
+            ],
+        ];
+        $sheet->getStyle('A1:' . $lastCol . '2')->applyFromArray($styleArray);
+
+        // Buat file
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $tempFile = tempnam(sys_get_temp_dir(), 'template_');
+        $writer->save($tempFile);
+
+        return response()->download($tempFile, 'template_import_siswa.xlsx')->deleteFileAfterSend(true);
     }
 }

@@ -10,6 +10,15 @@
     <style>
         .sidebar-link.active { @apply bg-blue-700 text-white; }
         [x-cloak] { display: none !important; }
+        /* Footer selalu di bawah */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .main-content {
+            flex: 1;
+        }
     </style>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
@@ -130,6 +139,40 @@
         <main class="flex-1 overflow-y-auto px-4 lg:px-6 pb-8">
             @yield('content')
         </main>
+
+        {{-- ============================================= --}}
+        {{-- FOOTER - Tampil di SEMUA halaman --}}
+        {{-- ============================================= --}}
+        <footer class="bg-white border-t border-gray-200 px-4 lg:px-6 py-4 mt-auto">
+            <div class="flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-2">
+                {{-- Copyright --}}
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-copyright text-blue-600 text-sm"></i>
+                    <span>{{ date('Y') }} <span class="font-medium text-gray-700">Sistem Bimbingan & Konseling</span></span>
+                    <span class="hidden sm:inline text-gray-300">|</span>
+                    <span class="text-gray-400">v1.0</span>
+                </div>
+                
+                {{-- Developer --}}
+                <div class="flex items-center gap-2 flex-wrap justify-center">
+                    <span class="flex items-center gap-1">
+                        <i class="fas fa-code text-blue-600 text-xs"></i>
+                        <span class="text-gray-500">Dibuat oleh</span>
+                        <span class="font-medium text-gray-700">Tim Unit Produksi PPLG</span>
+                    </span>
+                    <span class="text-gray-300">|</span>
+                    <span class="flex items-center gap-1">
+                        <i class="fas fa-user-graduate text-blue-600 text-xs"></i>
+                        <span class="text-gray-600">Raffi</span>
+                    </span>
+                    <span class="text-gray-300">|</span>
+                    <span class="flex items-center gap-1">
+                        <i class="fas fa-user-graduate text-blue-600 text-xs"></i>
+                        <span class="text-gray-600">Rizki</span>
+                    </span>
+                </div>
+            </div>
+        </footer>
     </div>
 </div>
 

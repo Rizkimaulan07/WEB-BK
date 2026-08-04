@@ -185,7 +185,7 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Tanggal Kejadian <span class="text-red-500">*</span>
+                    Tanggal <span class="text-red-500">*</span>
                 </label>
                 <input type="date" name="tanggal_kejadian" required
                        value="{{ old('tanggal_kejadian', date('Y-m-d')) }}"
